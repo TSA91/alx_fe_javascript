@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Quote Generator</title>
+    <title>Dynamic Quote Generator with Storage</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -24,14 +24,23 @@
             <div class="form-group">
                 <input id="newQuoteText" type="text" placeholder="Enter a new quote" />
                 <input id="newQuoteCategory" type="text" placeholder="Enter quote category" />
-                <button id="addQuoteBtn" class="btn">Add Quote</button>
+                <button onclick="addQuote()" class="btn">Add Quote</button>
             </div>
         </div>
 
-        <!-- Categories Filter -->
-        <div class="categories-section">
-            <h2>Filter by Category</h2>
-            <div id="categoryButtons"></div>
+        <!-- Import/Export Section -->
+        <div class="storage-section">
+            <h2>Import/Export Quotes</h2>
+            <div class="storage-controls">
+                <input type="file" id="importFile" accept=".json" onchange="importFromJsonFile(event)" />
+                <button onclick="exportToJson()" class="btn">Export Quotes</button>
+            </div>
+        </div>
+
+        <!-- Last Viewed Quote (Session Storage Demo) -->
+        <div class="last-viewed">
+            <h3>Last Viewed Quote:</h3>
+            <p id="lastViewed">None</p>
         </div>
     </div>
     <script src="script.js"></script>
