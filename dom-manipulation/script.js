@@ -158,3 +158,62 @@ function init() {
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', init);
+
+// Quote data structure
+let quotes = [
+    { text: "Life is what happens while you're busy making other plans.", category: "Life" },
+    { text: "The only way to do great work is to love what you do.", category: "Work" },
+    { text: "Innovation distinguishes between a leader and a follower.", category: "Leadership" }
+];
+
+// Function to filter quotes
+function filterQuotes() {
+    const selectedCategory = document.getElementById('categoryFilter').value;
+    const quoteDisplay = document.getElementById('quoteDisplay');
+    
+    // Save selected category to localStorage
+    localStorage.setItem('selectedCategory', selectedCategory);
+
+    // Filter quotes based on selected category
+    if (selectedCategory === 'all') {
+        // Display all quotes
+        quoteDisplay.textContent = quotes[Math.floor(Math.random() * quotes.length)].text;
+    } else {
+        // Filter and display quotes from selected category
+        const filteredQuotes = quotes.filter(quote => quote.category === selectedCategory);
+        if (filteredQuotes.length > 0) {
+            quoteDisplay.textContent = filteredQuotes[Math.floor(Math.random() * filteredQuotes.length)].text;
+        } else {
+            quoteDisplay.textContent = "No quotes available for this category";
+        }
+    }
+}
+
+// Function to populate categories
+function populateCategories() {
+    const categoryFilter = document.getElementById('categoryFilter');
+    const categories = [...new Set(quotes.map(quote => quote.category))];
+    
+    categoryFilter.innerHTML = '<option value="all">All Categories</option>';
+    categories.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category;
+        option.textContent = category;
+        categoryFilter.appendChild(option);
+    });
+}
+
+// Function to restore last selected category
+function restoreLastCategory() {
+    const lastCategory = localStorage.getItem('selectedCategory');
+    if (lastCategory) {
+        document.getElementById('categoryFilter').value = lastCategory;
+        filterQuotes(); // Apply the last selected filter
+    }
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    populateCategories();
+    restoreLastCategory();
+});
