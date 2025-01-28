@@ -54,7 +54,7 @@ async function syncQuotes() {
         // Merge and update local storage
         const mergedQuotes = mergeQuotes(localQuotes, serverQuotes);
         localStorage.setItem('quotes', JSON.stringify(mergedQuotes));
-        displayNotification('Quotes synchronized successfully', 'success');
+        displayNotification('Quotes synced with server!', 'success');
     }
 }
 
