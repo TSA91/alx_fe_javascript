@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quote Generator with Sync</title>
+    <link rel="stylesheet" href="styles_sync.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Quote Generator with Sync</h1>
+        
+        <!-- Sync Status -->
+        <div id="syncStatus" class="sync-status">
+            <span id="syncIndicator" class="sync-indicator">●</span>
+            <span id="syncMessage">Sync Status: Ready</span>
+        </div>
+
+        <!-- Quote Display Section -->
+        <div id="quoteDisplay" class="quote-display">
+            <p id="quoteText">Loading quotes...</p>
+            <p id="quoteCategory" class="category"></p>
+        </div>
+
+        <!-- Add Quote Section -->
+        <div class="add-quote-section">
+            <h2>Add New Quote</h2>
+            <div class="form-group">
+                <input id="newQuoteText" type="text" placeholder="Enter a new quote" />
+                <input id="newQuoteCategory" type="text" placeholder="Enter quote category" />
+                <button onclick="addQuote()" class="btn">Add Quote</button>
+            </div>
+        </div>
+
+        <!-- Sync Controls -->
+        <div class="sync-controls">
+            <button onclick="manualSync()" class="btn sync-btn">Manual Sync</button>
+            <button onclick="resolveConflicts()" class="btn conflict-btn">Resolve Conflicts</button>
+        </div>
+
+        <!-- Conflict Resolution Dialog -->
+        <div id="conflictDialog" class="conflict-dialog hidden">
+            <h3>Conflict Detected</h3>
+            <div id="conflictContent"></div>
+            <div class="conflict-actions">
+                <button onclick="useLocal()" class="btn">Use Local</button>
+                <button onclick="useServer()" class="btn">Use Server</button>
+            </div>
+        </div>
+    </div>
+    <script src="script_sync.js"></script>
+</body>
+</html>
