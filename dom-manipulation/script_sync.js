@@ -1,187 +1,154 @@
-// Configuration
-const CONFIG = {
-    SYNC_INTERVAL: 30000, // 30 seconds
-    API_URL: 'https://jsonplaceholder.typicode.com/posts', // Mock API endpoint
-    VERSION_KEY: 'quoteVersion'
-};
+// Mock API URL (using JSONPlaceholder)
+const API_URL = 'https://jsonplaceholder.typicode.com/posts';
 
-// State management
-let quotes = [];
-let syncInProgress = false;
-let lastSyncTime = null;
-
-// DOM Elements
-const syncIndicator = document.getElementById('syncIndicator');
-const syncMessage = document.getElementById('syncMessage');
-const conflictDialog = document.getElementById('conflictDialog');
-
-// Initialize the application
-async function init() {
-    loadLocalQuotes();
-    startAutoSync();
-    await performInitialSync();
-}
-
-// Load quotes from local storage
-function loadLocalQuotes() {
-    const storedQuotes = localStorage.getItem('quotes');
-    quotes = storedQuotes ? JSON.parse(storedQuotes) : [];
-    updateDisplay();
-}
-
-// Save quotes to local storage
-function saveLocalQuotes() {
-    localStorage.setItem('quotes', JSON.stringify(quotes));
-    localStorage.setItem(CONFIG.VERSION_KEY, Date.now().toString());
-}
-
-// Update the quote display
-function updateDisplay() {
-    const quoteDisplay = document.getElementById('quoteDisplay');
-    if (quotes.length > 0) {
-        const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
-        quoteDisplay.innerHTML = `
-            <p>"${randomQuote.text}"</p>
-            <p class="category">Category: ${randomQuote.category}</p>
-        `;
-    } else {
-        quoteDisplay.innerHTML = '<p>No quotes available</p>';
-    }
-}
-
-// Sync status indicators
-function updateSyncStatus(status, message) {
-    syncIndicator.className = `sync-indicator ${status}`;
-    syncMessage.textContent = message;
-}
-
-// Start automatic sync
-function startAutoSync() {
-    setInterval(async () => {
-        if (!syncInProgress) {
-            await syncWithServer();
-        }
-    }, CONFIG.SYNC_INTERVAL);
-}
-
-// Manual sync trigger
-async function manualSync() {
-    if (!syncInProgress) {
-        await syncWithServer();
-    }
-}
-
-// Main sync function
-async function syncWithServer() {
-    syncInProgress = true;
-    updateSyncStatus('syncing', 'Syncing...');
-
+// Function to fetch quotes from server
+async function fetchQuotesFromServer() {
     try {
-        // Simulate server fetch
-        const response = await fetch(CONFIG.API_URL);
-        const serverQuotes = await response.json();
-
-        // Convert server data to our format
-        const formattedServerQuotes = serverQuotes.map(sq => ({
-            text: sq.title,
-            category: 'Server',
-            id: sq.id
-        })).slice(0, 5); // Limit to 5 quotes for demo
-
-        // Check for conflicts
-        const conflicts = detectConflicts(formattedServerQuotes);
-        
-        if (conflicts.length > 0) {
-            showConflictDialog(conflicts);
-        } else {
-            mergeQuotes(formattedServerQuotes);
+        const response = await fetch(API_URL);
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
         }
-
-        updateSyncStatus('success', 'Last synced: ' + new Date().toLocaleTimeString());
+        const data = await response.json();
+        // Convert server data to quote format
+        return data.map(item => ({
+            id: item.id,
+            text: item.title,
+            category: 'Server Quote'
+        })).slice(0, 5); // Limit to 5 quotes for demo
     } catch (error) {
-        updateSyncStatus('error', 'Sync failed: ' + error.message);
-    } finally {
-        syncInProgress = false;
+        showNotification('Error fetching quotes: ' + error.message, 'error');
+        return [];
     }
 }
 
-// Detect conflicts between local and server data
-function detectConflicts(serverQuotes) {
-    return serverQuotes.filter(sq => 
-        quotes.some(lq => lq.id === sq.id && lq.text !== sq.text)
+// Function to post new quote to server
+async function postQuoteToServer(quote) {
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                title: quote.text,
+                body: quote.category,
+                userId: 1
+            }),
+            headers: {
+                'Content-type': 'application/json; charset=UTF-8',
+            },
+        });
+        const data = await response.json();
+        showNotification('Quote successfully posted to server', 'success');
+        return data;
+    } catch (error) {
+        showNotification('Error posting quote: ' + error.message, 'error');
+        return null;
+    }
+}
+
+// Function to sync quotes between local and server
+async function syncQuotes() {
+    const serverQuotes = await fetchQuotesFromServer();
+    const localQuotes = JSON.parse(localStorage.getItem('quotes') || '[]');
+
+    // Check for conflicts
+    const conflicts = findConflicts(localQuotes, serverQuotes);
+    
+    if (conflicts.length > 0) {
+        handleConflicts(conflicts);
+    } else {
+        // Merge quotes if no conflicts
+        const mergedQuotes = mergeQuotes(localQuotes, serverQuotes);
+        localStorage.setItem('quotes', JSON.stringify(mergedQuotes));
+        showNotification('Quotes synchronized successfully', 'success');
+    }
+}
+
+// Function to find conflicts between local and server quotes
+function findConflicts(localQuotes, serverQuotes) {
+    return serverQuotes.filter(serverQuote => 
+        localQuotes.some(localQuote => 
+            localQuote.id === serverQuote.id && 
+            localQuote.text !== serverQuote.text
+        )
     );
 }
 
-// Show conflict resolution dialog
-function showConflictDialog(conflicts) {
-    const content = conflicts.map(conflict => `
-        <div class="conflict-item">
-            <p>Server version: "${conflict.text}"</p>
-            <p>Local version: "${quotes.find(q => q.id === conflict.id).text}"</p>
+// Function to handle conflicts
+function handleConflicts(conflicts) {
+    const conflictContainer = document.getElementById('conflictContainer');
+    conflictContainer.innerHTML = `
+        <div class="conflict-notification">
+            <h3>Conflicts Detected</h3>
+            ${conflicts.map(conflict => `
+                <div class="conflict-item">
+                    <p>Server version: ${conflict.text}</p>
+                    <button onclick="resolveConflict(${conflict.id}, 'server')">Use Server Version</button>
+                    <button onclick="resolveConflict(${conflict.id}, 'local')">Keep Local Version</button>
+                </div>
+            `).join('')}
         </div>
-    `).join('');
-
-    document.getElementById('conflictContent').innerHTML = content;
-    conflictDialog.classList.remove('hidden');
+    `;
+    conflictContainer.style.display = 'block';
 }
 
-// Resolve conflicts using local data
-function useLocal() {
-    conflictDialog.classList.add('hidden');
-    updateSyncStatus('success', 'Using local version');
-}
-
-// Resolve conflicts using server data
-function useServer() {
-    conflictDialog.classList.add('hidden');
-    syncWithServer();
-}
-
-// Merge quotes without conflicts
-function mergeQuotes(serverQuotes) {
-    const mergedQuotes = [...quotes];
+// Function to merge quotes without conflicts
+function mergeQuotes(localQuotes, serverQuotes) {
+    const mergedQuotes = [...localQuotes];
     
-    serverQuotes.forEach(sq => {
-        const localIndex = mergedQuotes.findIndex(lq => lq.id === sq.id);
-        if (localIndex === -1) {
-            mergedQuotes.push(sq);
+    serverQuotes.forEach(serverQuote => {
+        if (!mergedQuotes.some(localQuote => localQuote.id === serverQuote.id)) {
+            mergedQuotes.push(serverQuote);
         }
     });
-
-    quotes = mergedQuotes;
-    saveLocalQuotes();
-    updateDisplay();
+    
+    return mergedQuotes;
 }
 
-// Add new quote
-function addQuote() {
-    const text = document.getElementById('newQuoteText').value;
-    const category = document.getElementById('newQuoteCategory').value;
+// Function to show notifications
+function showNotification(message, type) {
+    const notification = document.getElementById('notification');
+    notification.textContent = message;
+    notification.className = `notification ${type}`;
+    notification.style.display = 'block';
+    
+    setTimeout(() => {
+        notification.style.display = 'none';
+    }, 3000);
+}
 
-    if (!text || !category) {
-        alert('Please fill in both fields');
-        return;
+// Function to resolve conflicts
+function resolveConflict(quoteId, version) {
+    const localQuotes = JSON.parse(localStorage.getItem('quotes') || '[]');
+    const serverQuotes = JSON.parse(sessionStorage.getItem('serverQuotes') || '[]');
+    
+    if (version === 'server') {
+        const serverQuote = serverQuotes.find(quote => quote.id === quoteId);
+        const index = localQuotes.findIndex(quote => quote.id === quoteId);
+        if (index !== -1) {
+            localQuotes[index] = serverQuote;
+        }
     }
-
-    const newQuote = {
-        id: Date.now(),
-        text,
-        category
-    };
-
-    quotes.push(newQuote);
-    saveLocalQuotes();
-    updateDisplay();
-
-    // Clear inputs
-    document.getElementById('newQuoteText').value = '';
-    document.getElementById('newQuoteCategory').value = '';
+    
+    localStorage.setItem('quotes', JSON.stringify(localQuotes));
+    document.getElementById('conflictContainer').style.display = 'none';
+    showNotification('Conflict resolved', 'success');
 }
 
-// Initial sync when page loads
-async function performInitialSync() {
-    await syncWithServer();
+// Set up periodic sync
+function setupPeriodicSync() {
+    // Sync every 5 minutes
+    setInterval(syncQuotes, 300000);
+    
+    // Initial sync
+    syncQuotes();
 }
 
 // Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', () => {
+    setupPeriodicSync();
+    
+    // Add necessary HTML elements for notifications and conflicts
+    document.body.insertAdjacentHTML('beforeend', `
+        <div id="notification" class="notification" style="display: none;"></div>
+        <div id="conflictContainer" class="conflict-container" style="display: none;"></div>
+    `);
+});
