@@ -3,12 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Quote Generator with Storage</title>
+    <title>Dynamic Quote Generator with Filtering</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <h1>Dynamic Quote Generator</h1>
+        
+        <!-- Category Filter Section -->
+        <div class="filter-section">
+            <h2>Filter by Category</h2>
+            <select id="categoryFilter" onchange="filterQuotes()">
+                <option value="all">All Categories</option>
+                <!-- Dynamically populated categories -->
+            </select>
+        </div>
         
         <!-- Quote Display Section -->
         <div id="quoteDisplay" class="quote-display">
@@ -35,12 +44,6 @@
                 <input type="file" id="importFile" accept=".json" onchange="importFromJsonFile(event)" />
                 <button onclick="exportToJson()" class="btn">Export Quotes</button>
             </div>
-        </div>
-
-        <!-- Last Viewed Quote (Session Storage Demo) -->
-        <div class="last-viewed">
-            <h3>Last Viewed Quote:</h3>
-            <p id="lastViewed">None</p>
         </div>
     </div>
     <script src="script.js"></script>

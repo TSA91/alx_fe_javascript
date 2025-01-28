@@ -133,3 +133,22 @@ input[type="file"] {
     border-radius: 5px;
     background-color: white;
 }
+
+.filter-section {
+    margin: 20px 0;
+    text-align: center;
+}
+
+#categoryFilter {
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    width: 200px;
+    background-color: white;
+}
+
+#categoryFilter:focus {
+    outline: none;
+    border-color: #4CAF50;
+}
