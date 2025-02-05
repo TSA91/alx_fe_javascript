@@ -1,3 +1,4 @@
+//script.js
 // Initial quotes database
 let quotes = [
     { text: "The only way to do great work is to love what you do.", category: "motivation" },
@@ -129,8 +130,6 @@ function populateCategories() {
         categoryFilter.value = lastCategory;
     }
 }
-
-// Add new filterQuotes function
 // Update filterQuotes function
 function filterQuotes() {
     const selectedCategory = categoryFilter.value;
@@ -152,33 +151,27 @@ function filterQuotes() {
 
 // Update showRandomQuote function to use filterQuotes
 // Remove duplicate showRandomQuote function and keep only this version
+// Keep only one version of showRandomQuote
 function showRandomQuote() {
     filterQuotes();
 }
 
-// Remove duplicate initialize function and keep only this version
+// Keep only one version of initialize and remove syncWithServer
 function initialize() {
     loadFromLocalStorage();
     populateCategories();
+    
+    // Add the form to the container
+    const container = document.querySelector('.container');
+    container.appendChild(createAddQuoteForm());
+    
     showRandomQuote();
 }
 
-// Add the missing syncWithServer function
-async function syncWithServer() {
-    try {
-        const serverQuotes = await fetchServerQuotes();
-        quotes = serverQuotes;
-        saveToLocalStorage();
-        populateCategories();
-        filterQuotes();
-    } catch (error) {
-        console.error('Sync failed:', error);
-    }
-}
-
-// Update event listeners section
+// Clean up event listeners section
 categoryFilter.addEventListener('change', filterQuotes);
 generateBtn.addEventListener('click', showRandomQuote);
+
 
 // Start the application
 initialize();
@@ -244,6 +237,22 @@ function saveToLocalStorage() {
     localStorage.setItem('quotes', JSON.stringify(quotes));
     const categories = Array.from(new Set(quotes.map(quote => quote.category)));
     localStorage.setItem(CATEGORIES_KEY, JSON.stringify(categories));
+}
+
+function createAddQuoteForm() {
+    const form = document.createElement('div');
+    form.className = 'add-quote-section';
+    
+    form.innerHTML = `
+        <h2>Add New Quote</h2>
+        <div>
+            <input id="newQuoteText" type="text" placeholder="Enter a new quote" />
+            <input id="newQuoteCategory" type="text" placeholder="Enter quote category" />
+            <button onclick="addQuote()">Add Quote</button>
+        </div>
+    `;
+    
+    return form;
 }
 
 // Update initialize function
