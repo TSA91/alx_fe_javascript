@@ -134,10 +134,25 @@ function populateCategories() {
 // Add new filterQuotes function
 function filterQuote() {
     const selectedCategory = categoryFilter.value;
-    // Save selected category
     localStorage.setItem(LAST_CATEGORY_KEY, selectedCategory);
     
-    showRandomQuote();
+const filteredQuotes = selectedCategory === 'all'
+? quotes
+: quotes.filter(quote => quote.category === selectedCategory);
+
+if(filteredQuotes.length === 0) {
+    quoteText.textContent = 'No quotes in this category';
+    return;
+}
+
+// Display a random quote from filtered quotes
+const randomIndex = Math.floor(Math.random() * filteredQuotes.length);
+const selectedQuote = filteredQuotes[randomIndex];
+quoteText.textContext = `"${selectedQuote.text}"`;
+}
+
+function showRandomQuote() {
+    filterQuotes();
 }
 
 // Update initialize function
