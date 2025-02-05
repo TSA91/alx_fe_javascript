@@ -210,7 +210,35 @@ function loadFromLocalStorage() {
 }
 
 // Update addQuote function
-function addQuote() {
+// Add after API_URL constant
+const API_HEADERS = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+};
+
+// Add postQuoteToServer function
+async function postQuoteToServer(quote) {
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: API_HEADERS,
+            body: JSON.stringify({
+                title: quote.category,
+                body: quote.text
+            })
+        });
+
+        if (!response.ok) throw new Error('Failed to post quote');
+        return await response.json();
+    } catch (error) {
+        console.error('Error posting quote:', error);
+        showNotification('Failed to sync quote with server', 'error');
+        return null;
+    }
+}
+
+// Update addQuote function to include server sync
+async function addQuote() {
     const text = newQuoteText.value.trim();
     const category = newQuoteCategory.value.trim().toLowerCase();
 
@@ -227,9 +255,15 @@ function addQuote() {
     newQuoteCategory.value = '';
     
     saveToLocalStorage();
-    populateCategories(); // Changed from updateCategoryOptions
-    filterQuotes(); // Show quotes from new category
+    populateCategories();
+    filterQuotes();
     showNotification('Quote added successfully!');
+
+    // Sync new quote with server
+    const serverResponse = await postQuoteToServer(newQuote);
+    if (serverResponse) {
+        showNotification('Quote synced with server!');
+    }
 }
 
 // Update saveToLocalStorage function
@@ -255,55 +289,103 @@ function createAddQuoteForm() {
     return form;
 }
 
-//after existing constants
+// Add after the existing constants
 const API_URL = 'https://jsonplaceholder.typicode.com/posts';
 
-//add fetchQuotesFromServer function
+// Add fetchQuotesFromServer function
 async function fetchQuotesFromServer() {
     try {
         const response = await fetch(API_URL);
         if (!response.ok) throw new Error('Network response was not ok');
-
+        
         const posts = await response.json();
-        //convert posts to quote format
+        // Convert posts to quote format
         return posts.slice(0, 5).map(post => ({
             text: post.body.split('\n')[0],
             category: post.title.split(' ')[0].toLowerCase()
         }));
     } catch (error) {
-        console.error('Error fetching quotes', Error);
+        console.error('Error fetching quotes:', error);
         showNotification('Failed to fetch quotes from server', 'error');
         return [];
     }
 }
 
-// add syncWithServer function
-async function syncWithServer () {
-    try{
-
-    
-    const serverQuotes = await fetchQuotesFromServer();
-    if (serverQuotes.length > 0) {
-        //server data overrides local data for conflict resolution
-        quotes = mergeQuotes(serverQuotes, quotes);
-        saveToLocalStorage();
-        populateCategories;
-        filterQuotes();
-            showNotification('Quotes synced with server successfully');
-        
+// Add syncWithServer function
+async function syncWithServer() {
+    try {
+        const serverQuotes = await fetchQuotesFromServer();
+        if (serverQuotes.length > 0) {
+            // Server data overrides local data for conflict resolution
+            quotes = mergeQuotes(serverQuotes, quotes);
+            saveToLocalStorage();
+            populateCategories();
+            filterQuotes();
+            showNotification('Quotes synced with server successfully!');
+        }
+    } catch (error) {
+        console.error('Sync failed:', error);
+        showNotification('Failed to sync with server', 'error');
     }
-} catch (error) {
-    console.error('Sync failed:', error);
-    showNotification('Failed to sync with Server', 'error')
-}
 }
 
 // Update initialize function
 function initialize() {
     loadFromLocalStorage();
-    updateCategoryOptions();
+    populateCategories();
     showRandomQuote();
-    setInterval(syncWithServer, 5000);
+    
+    // Initial sync and set up periodic sync
+    syncQuotes();
+    setInterval(syncQuotes, 30000); // Sync every 30 seconds
+}
+
+// Add syncQuotes function
+async function syncQuotes() {
+    try {
+        // First, get server quotes
+        const serverQuotes = await fetchQuotesFromServer();
+        
+        // Then, post local quotes that aren't on server
+        for (const quote of quotes) {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: API_HEADERS,
+                body: JSON.stringify({
+                    title: quote.category,
+                    body: quote.text
+                })
+            });
+            
+            if (!response.ok) {
+                console.error('Failed to sync quote:', quote);
+            }
+        }
+
+        // Merge server and local quotes
+        if (serverQuotes.length > 0) {
+            quotes = mergeQuotes(serverQuotes, quotes);
+            saveToLocalStorage();
+            populateCategories();
+            filterQuotes();
+        }
+        
+        showNotification('Quotes synced successfully!');
+    } catch (error) {
+        console.error('Sync failed:', error);
+        showNotification('Failed to sync quotes', 'error');
+    }
+}
+
+// Update initialize function
+function initialize() {
+    loadFromLocalStorage();
+    populateCategories();
+    showRandomQuote();
+    
+    // Initial sync and set up periodic sync
+    syncQuotes();
+    setInterval(syncQuotes, 30000); // Sync every 30 seconds
 }
 
 // Add category filter event listener
