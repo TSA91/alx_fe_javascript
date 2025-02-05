@@ -255,6 +255,49 @@ function createAddQuoteForm() {
     return form;
 }
 
+//after existing constants
+const API_URL = 'https://jsonplaceholder.typicode.com/posts';
+
+//add fetchQuotesFromServer function
+async function fetchQuotesFromServer() {
+    try {
+        const response = await fetch(API_URL);
+        if (!response.ok) throw new Error('Network response was not ok');
+
+        const posts = await response.json();
+        //convert posts to quote format
+        return posts.slice(0, 5).map(post => ({
+            text: post.body.split('\n')[0],
+            category: post.title.split(' ')[0].toLowerCase()
+        }));
+    } catch (error) {
+        console.error('Error fetching quotes', Error);
+        showNotification('Failed to fetch quotes from server', 'error');
+        return [];
+    }
+}
+
+// add syncWithServer function
+async function syncWithServer () {
+    try{
+
+    
+    const serverQuotes = await fetchQuotesFromServer();
+    if (serverQuotes.length > 0) {
+        //server data overrides local data for conflict resolution
+        quotes = mergeQuotes(serverQuotes, quotes);
+        saveToLocalStorage();
+        populateCategories;
+        filterQuotes();
+            showNotification('Quotes synced with server successfully');
+        
+    }
+} catch (error) {
+    console.error('Sync failed:', error);
+    showNotification('Failed to sync with Server', 'error')
+}
+}
+
 // Update initialize function
 function initialize() {
     loadFromLocalStorage();
