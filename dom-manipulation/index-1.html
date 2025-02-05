@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Quote Generator</title>
+    <link rel="stylesheet" href="styles-1.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Dynamic Quote Generator</h1>
+        
+        <div class="quote-section">
+            <div class="quote-display">
+                <p id="quote-text">Click the button to generate a quote</p>
+            </div>
+            
+            <div class="controls">
+                <button id="generate-btn">New Quote</button>
+                <button id="export-btn">Export Quotes</button>
+                <div class="import-container">
+                    <input type="file" id="importFile" accept=".json" class="file-input" />
+                    <label for="importFile" class="import-label">Import Quotes</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="add-quote-section">
+            <h2>Add New Quote</h2>
+            <div>
+                <input id="newQuoteText" type="text" placeholder="Enter a new quote" />
+                <input id="newQuoteCategory" type="text" placeholder="Enter quote category" />
+                <button onclick="addQuote()">Add Quote</button>
+            </div>
+        </div>
+    </div>
+    <!-- Add before closing body tag -->
+        <script src="script.js"></script>
+    </body>
+</html>
