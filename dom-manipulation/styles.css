@@ -58,7 +58,18 @@ h2 {
 }
 
 .controls {
-  text-align: center;
+    text-align: center;
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+#export-btn {
+    background-color: var(--color-secondary);
+}
+
+#export-btn:hover {
+    background-color: var(--color-secondary-dark);
 }
 
 button {
@@ -132,4 +143,24 @@ input {
 input:focus {
     outline: 2px solid var(--color-primary);
     border-color: transparent;
+}
+.import-container {
+    display: inline-block;
+}
+
+.file-input {
+    display: none;
+}
+
+.import-label {
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    background-color: var(--color-primary);
+    color: var(--color-surface);
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.import-label:hover {
+    background-color: var(--color-primary-dark);
 }
