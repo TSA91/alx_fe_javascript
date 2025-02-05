@@ -321,7 +321,7 @@ async function syncWithServer() {
             saveToLocalStorage();
             populateCategories();
             filterQuotes();
-            showNotification('Quotes synced with server successfully!');
+            showNotification('Quotes synced with server!');
         }
     } catch (error) {
         console.error('Sync failed:', error);
@@ -370,7 +370,7 @@ async function syncQuotes() {
             filterQuotes();
         }
         
-        showNotification('Quotes synced successfully!');
+        showNotification('Quotes synced with server!');
     } catch (error) {
         console.error('Sync failed:', error);
         showNotification('Failed to sync quotes', 'error');
