@@ -1,4 +1,3 @@
-//script.js
 // Initial quotes database
 let quotes = [
     { text: "The only way to do great work is to love what you do.", category: "motivation" },
@@ -8,7 +7,7 @@ let quotes = [
 ];
 
 // DOM elements
-const quoteText = document.getElementById('quote-text');
+const quoteDisplay = document.getElementById('quote-display');
 const generateBtn = document.getElementById('generate-btn');
 const newQuoteText = document.getElementById('newQuoteText');
 const newQuoteCategory = document.getElementById('newQuoteCategory');
@@ -69,10 +68,10 @@ function mergeQuotes(existing, imported) {
     return Array.from(new Set(combined.map(q => JSON.stringify(q))))
                 .map(str => JSON.parse(str));
 }
-0
+
 function showNotification(message, type = 'success') {
     const notification = document.createElement('div');
-    notification.className =`notification ${type}` ;
+    notification.className = `notification ${type}`;
     notification.textContent = message;
     document.body.appendChild(notification);
 
@@ -132,40 +131,61 @@ function populateCategories() {
 }
 
 // Add new filterQuotes function
-function filterQuote() {
+// Update filterQuotes function
+function filterQuotes() {
     const selectedCategory = categoryFilter.value;
     localStorage.setItem(LAST_CATEGORY_KEY, selectedCategory);
     
-const filteredQuotes = selectedCategory === 'all'
-? quotes
-: quotes.filter(quote => quote.category === selectedCategory);
+    const filteredQuotes = selectedCategory === 'all' 
+        ? quotes 
+        : quotes.filter(quote => quote.category === selectedCategory);
 
-if(filteredQuotes.length === 0) {
-    quoteText.textContent = 'No quotes in this category';
-    return;
+    if (filteredQuotes.length === 0) {
+        quoteDisplay.textContent = 'No quotes in this category';
+        return;
+    }
+
+    const randomIndex = Math.floor(Math.random() * filteredQuotes.length);
+    const selectedQuote = filteredQuotes[randomIndex];
+    quoteDisplay.textContent = "${selectedQuote.text}";
 }
 
-// Display a random quote from filtered quotes
-const randomIndex = Math.floor(Math.random() * filteredQuotes.length);
-const selectedQuote = filteredQuotes[randomIndex];
-quoteText.textContext = `"${selectedQuote.text}"`;
-}
-
+// Update showRandomQuote function to use filterQuotes
+// Remove duplicate showRandomQuote function and keep only this version
 function showRandomQuote() {
     filterQuotes();
 }
 
-// Update initialize function
+// Remove duplicate initialize function and keep only this version
 function initialize() {
     loadFromLocalStorage();
-    populateCategories(); // Changed from updateCategoryOptions
+    populateCategories();
     showRandomQuote();
-    setInterval(syncWithServer, 5000);
 }
+
+// Add the missing syncWithServer function
+async function syncWithServer() {
+    try {
+        const serverQuotes = await fetchServerQuotes();
+        quotes = serverQuotes;
+        saveToLocalStorage();
+        populateCategories();
+        filterQuotes();
+    } catch (error) {
+        console.error('Sync failed:', error);
+    }
+}
+
+// Update event listeners section
+categoryFilter.addEventListener('change', filterQuotes);
+generateBtn.addEventListener('click', showRandomQuote);
+
+// Start the application
+initialize();
 
 // Update event listener
 categoryFilter.removeEventListener('change', showRandomQuote);
-categoryFilter.addEventListener('change', filterQuote);
+categoryFilter.addEventListener('change', filterQuotes);
 
 function showRandomQuote() {
     const selectedCategory = categoryFilter.value;
@@ -215,7 +235,7 @@ function addQuote() {
     
     saveToLocalStorage();
     populateCategories(); // Changed from updateCategoryOptions
-    filterQuote(); // Show quotes from new category
+    filterQuotes(); // Show quotes from new category
     showNotification('Quote added successfully!');
 }
 

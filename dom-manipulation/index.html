@@ -11,11 +11,17 @@
         <h1>Dynamic Quote Generator</h1>
         
         <div class="quote-section">
-            <div class="quote-display">
-                <p id="quote-text">Click the button to generate a quote</p>
+            <div class="quote-display" id="quote-display">
+                Click the button to generate a quote
             </div>
             
             <div class="controls">
+                <select id="categoryFilter">
+                    <option value="all">All Categories</option>
+                    <option value="motivation">Motivation</option>
+                    <option value="success">Success</option>
+                    <option value="wisdom">Wisdom</option>
+                </select>
                 <button id="generate-btn">New Quote</button>
                 <button id="export-btn">Export Quotes</button>
                 <div class="import-container">
