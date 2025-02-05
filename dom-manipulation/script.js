@@ -69,7 +69,7 @@ function mergeQuotes(existing, imported) {
     return Array.from(new Set(combined.map(q => JSON.stringify(q))))
                 .map(str => JSON.parse(str));
 }
-
+0
 function showNotification(message, type = 'success') {
     const notification = document.createElement('div');
     notification.className =`notification ${type}` ;
@@ -132,7 +132,7 @@ function populateCategories() {
 }
 
 // Add new filterQuotes function
-function filterQuotes() {
+function filterQuote() {
     const selectedCategory = categoryFilter.value;
     // Save selected category
     localStorage.setItem(LAST_CATEGORY_KEY, selectedCategory);
@@ -150,7 +150,7 @@ function initialize() {
 
 // Update event listener
 categoryFilter.removeEventListener('change', showRandomQuote);
-categoryFilter.addEventListener('change', filterQuotes);
+categoryFilter.addEventListener('change', filterQuote);
 
 function showRandomQuote() {
     const selectedCategory = categoryFilter.value;
@@ -200,7 +200,7 @@ function addQuote() {
     
     saveToLocalStorage();
     populateCategories(); // Changed from updateCategoryOptions
-    filterQuotes(); // Show quotes from new category
+    filterQuote(); // Show quotes from new category
     showNotification('Quote added successfully!');
 }
 
